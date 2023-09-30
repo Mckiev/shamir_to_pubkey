@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self';">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Generator & Shamir Secret Sharing</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Password Generator & Shamir Secret Sharing</h1>
+
+    <div id="password">
+        <textarea id="passwordInput" placeholder="Enter your password or generate one" rows="4" cols="50"></textarea>
+        <button id="generatePassword">Generate Password</button>
+    </div>
+
+
+
+    <div id="secretSharing">
+        <button id="splitSecret">Split Secret</button>
+        <table id="shares">
+            <!-- Rows will be populated here -->
+        </table>
+    </div>
+
+    <div id="combineShares">
+        <h2>Combine Shares to Recover Password</h2>
+        <textarea id="shareInput1" placeholder="Enter share #1"></textarea>
+        <textarea id="shareInput2" placeholder="Enter share #2"></textarea>
+        <textarea id="shareInput3" placeholder="Enter share #3"></textarea>
+        <!-- Add more textareas if needed -->
+        <button id="combineButton">Combine Shares</button>
+        <p id="recoveredPassword"></p>
+    </div>
+
+    <script src="secrets.js"></script>
+    <script src="app.js"></script>
+
+</body>
+</html>
