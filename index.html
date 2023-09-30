@@ -2,40 +2,57 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self';">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Password Generator & Shamir Secret Sharing</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Password Generator & Shamir Secret Sharing</h1>
-
-    <div id="password">
-        <textarea id="passwordInput" placeholder="Enter your password or generate one" rows="4" cols="50"></textarea>
-        <button id="generatePassword">Generate Password</button>
+    <div class="tab-header">
+        <button class="tab-link" onclick="openTab('generateTab')">Generate & Split</button>
+        <button class="tab-link" onclick="openTab('combineTab')">Combine</button>
     </div>
 
+    <div id="generateTab" class="tab-content">
+        <h1>Password Generator & Shamir Secret Sharing</h1>
 
-
-    <div id="secretSharing">
-        <button id="splitSecret">Split Secret</button>
-        <table id="shares">
-            <!-- Rows will be populated here -->
-        </table>
+        <div id="password">
+            <textarea id="passwordInput" placeholder="Enter your password or generate one" rows="4" cols="50"></textarea>
+            <button id="generatePassword">Generate Password</button>
+        </div>
+    
+    
+        <div id="secretSharing">
+            <label for="totalShares">Total Shares:</label>
+            <input type="number" id="totalShares" min="2" value="5">
+            <label for="minShares">Shares for Recovery:</label>
+            <input type="number" id="minShares" min="2" value="3">
+            <button id="splitSecret">Split Secret</button>
+            <table id="shares">
+                <!-- Rows will be populated here -->
+            </table>
+        </div>
+    
     </div>
 
-    <div id="combineShares">
-        <h2>Combine Shares to Recover Password</h2>
-        <textarea id="shareInput1" placeholder="Enter share #1"></textarea>
-        <textarea id="shareInput2" placeholder="Enter share #2"></textarea>
-        <textarea id="shareInput3" placeholder="Enter share #3"></textarea>
-        <!-- Add more textareas if needed -->
-        <button id="combineButton">Combine Shares</button>
-        <p id="recoveredPassword"></p>
+    <div id="combineTab" class="tab-content" style="display:none;">
+        <h1>Combine Shares to Recover Password</h1>
+        <div id="combineShares">
+            <h2>Combine Shares to Recover Password</h2>
+            <div class="add-remove">
+                <button id="addShareRow">Add Share Row</button>
+                <button id="removeShareRow">Remove Share Row</button>
+            </div>
+            <div id="shareRows">
+                <!-- Textareas will be dynamically added here -->
+            </div>
+            <button id="combineButton">Combine Shares</button>
+            <textarea id="recoveredPassword" readonly></textarea>
+        </div>
+        
+        
+
     </div>
 
     <script src="secrets.js"></script>
     <script src="app.js"></script>
-
 </body>
 </html>

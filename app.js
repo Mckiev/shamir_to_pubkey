@@ -1,4 +1,17 @@
+// JavaScript for tab switching
+function openTab(tabName) {
+    var i, tabContent;
+    tabContent = document.getElementsByClassName("tab-content");
+    for (i = 0; i < tabContent.length; i++) {
+        tabContent[i].style.display = "none";
+    }
+    document.getElementById(tabName).style.display = "block";
+}
+
 document.addEventListener("DOMContentLoaded", function () {
+    // Open the first tab by default
+    openTab('generateTab');
+    
     const generatePasswordButton = document.getElementById("generatePassword");
     const passwordInputElement = document.getElementById("passwordInput");
     const splitSecretButton = document.getElementById("splitSecret");
@@ -12,8 +25,13 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        const numberOfShares = 5; // Total number of shares
-        const minimumSharesRequired = 3; // Minimum shares required to recover
+        const numberOfShares = parseInt(document.getElementById("totalShares").value) || 5;
+        const minimumSharesRequired = parseInt(document.getElementById("minShares").value) || 3;
+
+        if (minimumSharesRequired > numberOfShares) {
+            alert("The number of shares for recovery cannot be greater than the total number of shares.");
+            return;
+        }
 
         const shares = secrets.share(password, numberOfShares, minimumSharesRequired);
 
@@ -46,27 +64,60 @@ document.addEventListener("DOMContentLoaded", function () {
         passwordInputElement.value = generatedPassword; // Fill the input field with the generated password
     });
 
+
+
+    // Code to split the password
     splitSecretButton.addEventListener("click", splitPassword);
 
     const combineButton = document.getElementById("combineButton");
     const recoveredPasswordElement = document.getElementById("recoveredPassword");
 
     function combineShares() {
-        const share1 = document.getElementById("shareInput1").value;
-        const share2 = document.getElementById("shareInput2").value;
-        const share3 = document.getElementById("shareInput3").value;
-
-        // Add more shares if needed
-        const sharesToCombine = [share1, share2, share3].filter(Boolean);  // Remove any empty shares
-
-        if (sharesToCombine.length < 3) {  // Adjust the number based on your minimum required shares
-            alert("Please enter at least 3 shares to combine.");  // Update the alert message accordingly
-            return;
+        const sharesToCombine = [];
+        for (let i = 1; i <= shareRowCount; i++) {
+            const shareValue = document.getElementById(`shareInput${i}`).value;
+            if (shareValue) {
+                sharesToCombine.push(shareValue);
+            }
         }
 
         const recoveredPassword = secrets.combine(sharesToCombine);
         recoveredPasswordElement.textContent = `Recovered Password: ${recoveredPassword}`;
     }
+    
+    const addShareRowButton = document.getElementById("addShareRow");
+    const shareRowsElement = document.getElementById("shareRows");
 
-combineButton.addEventListener("click", combineShares);
+    let shareRowCount = 0;
+
+    function addShareRow() {
+        shareRowCount++;
+        const newTextArea = document.createElement("textarea");
+        newTextArea.placeholder = `Enter share #${shareRowCount}`;
+        newTextArea.id = `shareInput${shareRowCount}`;
+        shareRowsElement.appendChild(newTextArea);
+    }
+
+    // Initially add 3 rows
+    for (let i = 0; i < 3; i++) {
+        addShareRow();
+    }
+
+    const removeShareRowButton = document.getElementById("removeShareRow");
+
+    function removeShareRow() {
+        if (shareRowCount > 0) {
+            const lastTextArea = document.getElementById(`shareInput${shareRowCount}`);
+            if (lastTextArea) {
+                lastTextArea.remove();
+                shareRowCount--;
+            }
+        }
+    }
+
+    removeShareRowButton.addEventListener("click", removeShareRow);
+
+    addShareRowButton.addEventListener("click", addShareRow);
+
+    combineButton.addEventListener("click", combineShares);
 });
