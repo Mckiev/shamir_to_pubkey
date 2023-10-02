@@ -8,9 +8,23 @@ function openTab(tabName) {
     document.getElementById(tabName).style.display = "block";
 }
 
+function initDownoad(theData, fileName) {
+    // Create Blob and initiate automatic file download
+    const blob = new Blob([theData], { type: 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = fileName;  // Set the file name
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     // Open the first tab by default
-    openTab('generateTab');
+    openTab('combineTab');
     
     const generatePasswordButton = document.getElementById("generatePassword");
     const passwordInputElement = document.getElementById("passwordInput");
@@ -60,7 +74,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     generatePasswordButton.addEventListener("click", () => {
-        const generatedPassword = secrets.random(512); // Using secrets.random
+        const generatedPassword = secrets.random(256); // Using secrets.random
         passwordInputElement.value = generatedPassword; // Fill the input field with the generated password
     });
 
@@ -82,7 +96,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         const recoveredPassword = secrets.combine(sharesToCombine);
-        recoveredPasswordElement.textContent = `Recovered Password: ${recoveredPassword}`;
+        recoveredPasswordElement.textContent = `${recoveredPassword}`;
     }
     
     const addShareRowButton = document.getElementById("addShareRow");
@@ -121,3 +135,152 @@ document.addEventListener("DOMContentLoaded", function () {
 
     combineButton.addEventListener("click", combineShares);
 });
+
+
+const fileInputElement = document.getElementById("fileInput");
+const encryptFileButton = document.getElementById("encryptFile");
+const encryptionStatusElement = document.getElementById("encryptionStatus");
+
+function hexToArrayBuffer(hex) {
+    const buffer = new ArrayBuffer(hex.length / 2);
+    const dataView = new DataView(buffer);
+    for (let i = 0; i < hex.length; i += 2) {
+        dataView.setUint8(i / 2, parseInt(hex.substring(i, i + 2), 16));
+    }
+    return buffer;
+}
+
+async function encryptFile() {
+    try {
+        const file = fileInputElement.files[0];
+        if (!file) {
+            encryptionStatusElement.textContent = 'No file selected';
+            return;
+        }
+
+        const password = document.getElementById("passwordInput").value;
+        if (!password) {
+            encryptionStatusElement.textContent = 'Please generate or enter a password first';
+            return;
+        }
+
+
+
+        const keyBuffer = hexToArrayBuffer(password);
+        const key = await crypto.subtle.importKey(
+            'raw',
+            keyBuffer,
+            { name: 'AES-GCM' },
+            false,
+            ['encrypt', 'decrypt']
+        );
+        
+        const fileBuffer = await file.arrayBuffer();
+        const fileName = file.name;
+        const metadata = JSON.stringify({ fileName });
+        const metadataBuffer = new TextEncoder().encode(metadata);
+        const delimiter = new TextEncoder().encode("||");
+    
+        const combinedArray = new Uint8Array(
+            metadataBuffer.length + delimiter.length + fileBuffer.byteLength
+        );
+        combinedArray.set(metadataBuffer, 0);
+        combinedArray.set(delimiter, metadataBuffer.length);
+        combinedArray.set(new Uint8Array(fileBuffer), metadataBuffer.length + delimiter.length);
+    
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        const encryptedData = await crypto.subtle.encrypt(
+            {
+                name: 'AES-GCM',
+                iv: iv
+            },
+            key,
+            combinedArray
+        );
+    
+        const finalArray = new Uint8Array(iv.length + encryptedData.byteLength);
+        finalArray.set(iv, 0);
+        finalArray.set(new Uint8Array(encryptedData), iv.length);
+        
+        encryptionStatusElement.textContent = 'File encrypted successfully';
+
+        // Create Blob and initiate automatic file download
+        initDownoad(finalArray, 'SuperSecretFile.enc');
+
+    } catch (e) {
+        console.error('Encryption Error:', e);
+        encryptionStatusElement.textContent = 'Encryption failed';
+    }
+}
+
+
+encryptFileButton.addEventListener("click", encryptFile);
+
+
+async function decryptFile() {
+    const decryptionStatusElement = document.getElementById('decryptionStatus');
+    try {
+        const file = document.getElementById("encryptedFileInput").files[0];
+        if (!file) {
+            decryptionStatusElement.textContent = 'No encrypted file selected';
+            return;
+        }
+
+        const password = document.getElementById("decryptionPasswordInput").value;
+        if (!password) {
+            decryptionStatusElement.textContent = 'Please enter a password';
+            return;
+        }
+
+        const keyBuffer = hexToArrayBuffer(password);
+        const key = await crypto.subtle.importKey(
+            'raw',
+            keyBuffer,
+            { name: 'AES-GCM' },
+            false,
+            ['decrypt']
+        );
+
+        const fileBuffer = await file.arrayBuffer();
+        const iv = new Uint8Array(fileBuffer, 0, 12);
+        const encryptedData = new Uint8Array(fileBuffer, 12);
+
+
+        const decryptedData = await crypto.subtle.decrypt(
+            {
+                name: 'AES-GCM',
+                iv: iv
+            },
+            key,
+            encryptedData
+        );
+
+        const decryptedArray = new Uint8Array(decryptedData);
+        const delimiter = new TextEncoder().encode("||");
+        let delimiterIndex = -1;
+        for (let i = 0; i < decryptedArray.length - delimiter.length + 1; i++) {
+            if (decryptedArray.slice(i, i + delimiter.length).every((val, index) => val === delimiter[index])) {
+                delimiterIndex = i;
+                break;
+            }
+        }
+
+        if (delimiterIndex === -1) {
+            console.error("Delimiter not found");
+            return;
+        }
+        const metadataBuffer = decryptedArray.slice(0, delimiterIndex);
+        const metadataString = new TextDecoder().decode(metadataBuffer);
+        const metadata = JSON.parse(metadataString);
+        const originalFileName = metadata.fileName;
+
+        const originalFileData = decryptedArray.slice(delimiterIndex + delimiter.length);
+
+        initDownoad(originalFileData, originalFileName);
+
+        decryptionStatusElement.textContent = 'File decrypted successfully';
+    } catch (e) {
+        console.error('Decryption Error:', e);
+        decryptionStatusElement.textContent = 'Decryption failed';
+    }
+}

@@ -30,7 +30,13 @@
                 <!-- Rows will be populated here -->
             </table>
         </div>
-    
+
+        <div id="fileEncryption">
+            <h2>File Encryption</h2>
+            <input type="file" id="fileInput">
+            <button id="encryptFile">Encrypt File</button>
+            <p id="encryptionStatus"></p>
+        </div>
     </div>
 
     <div id="combineTab" class="tab-content" style="display:none;">
@@ -45,10 +51,16 @@
                 <!-- Textareas will be dynamically added here -->
             </div>
             <button id="combineButton">Combine Shares</button>
+            <h3>Recovered password:</h3>
             <textarea id="recoveredPassword" readonly></textarea>
         </div>
-        
-        
+        <div id="decryptionDiv">
+            <h2>Decrypt File</h2>
+            <input type="file" id="encryptedFileInput">
+            <input type="password" id="decryptionPasswordInput" placeholder="Enter Password">
+            <button onclick="decryptFile()">Decrypt File</button>
+            <p id="decryptionStatus">Status: Waiting for file and password...</p>
+        </div>        
 
     </div>
 
