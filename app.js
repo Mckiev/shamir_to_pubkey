@@ -1,3 +1,6 @@
+const secrets = require('secrets.js-grempe');
+const EthCrypto = require('eth-crypto');
+
 // JavaScript for tab switching
 function openTab(tabName) {
     var i, tabContent;
@@ -7,6 +10,23 @@ function openTab(tabName) {
     }
     document.getElementById(tabName).style.display = "block";
 }
+
+function hexToUint8Array(hexString) {
+    // Remove '0x' prefix if present
+    if (hexString.startsWith('0x')) {
+        hexString = '04' + hexString.slice(2);
+    }
+    // Ensure even number of characters
+    if (hexString.length % 2 !== 0) {
+        throw new Error('Invalid hex string');
+    }
+    var bytes = new Uint8Array(hexString.length / 2);
+    for (var i = 0; i < bytes.length; i++) {
+        bytes[i] = parseInt(hexString.substr(i * 2, 2), 16);
+    }
+    return bytes;
+}
+
 
 function initDownoad(theData, fileName) {
     // Create Blob and initiate automatic file download
@@ -22,9 +42,55 @@ function initDownoad(theData, fileName) {
     document.body.removeChild(a);
 }
 
+function displayPublicKeys(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const content = e.target.result;
+        try {
+            const data = JSON.parse(content);
+            const encryptedSharesTable = document.getElementById('encryptedShares');
+            data.pairs.forEach((pair) => {
+                const row = document.createElement('tr');
+
+                const indexCell = document.createElement('td');
+                const ethAddressCell = document.createElement('td');
+                const publicKeyCell = document.createElement('td');
+                const originalShareCell = document.createElement('td');
+                const encryptedShareCell = document.createElement('td');
+                const originalShareTextarea = document.createElement('textarea');
+                const encryptedShareTextarea = document.createElement('textarea');
+
+                indexCell.textContent = encryptedSharesTable.rows.length;  // Assumes header row is present
+                ethAddressCell.textContent = pair.ethAddress;
+                publicKeyCell.textContent = pair.publicKey;
+                originalShareTextarea.readOnly = true;
+                encryptedShareTextarea.readOnly = true;
+
+                originalShareCell.appendChild(originalShareTextarea);
+                encryptedShareCell.appendChild(encryptedShareTextarea);
+
+                row.appendChild(indexCell);
+                row.appendChild(ethAddressCell);
+                row.appendChild(publicKeyCell);
+                row.appendChild(originalShareCell);
+                row.appendChild(encryptedShareCell);
+
+                encryptedSharesTable.appendChild(row);
+            });
+        } catch (error) {
+            console.error('Error parsing JSON:', error);
+        }
+    };
+    reader.readAsText(file);
+}
+
+
 document.addEventListener("DOMContentLoaded", function () {
     // Open the first tab by default
-    openTab('combineTab');
+    openTab('generateTab');
     
     const generatePasswordButton = document.getElementById("generatePassword");
     const passwordInputElement = document.getElementById("passwordInput");
@@ -78,10 +144,60 @@ document.addEventListener("DOMContentLoaded", function () {
         passwordInputElement.value = generatedPassword; // Fill the input field with the generated password
     });
 
+    async function encryptShare(share, publicKey) {
+        const publicKeyUint8Array = hexToUint8Array(publicKey)
+        const encryptedShare = await EthCrypto.encryptWithPublicKey(
+            publicKeyUint8Array, // by encryping with the receiver's publicKey, only the receiver can decrypt the payload with his privateKey
+            share // String or Uint8Array
+        );
+        
+        return EthCrypto.cipher.stringify(encryptedShare);
+    }
 
+    document.getElementById('publicKeyFile').addEventListener('change', displayPublicKeys);
 
     // Code to split the password
     splitSecretButton.addEventListener("click", splitPassword);
+
+    const encryptSharesButton = document.getElementById('encryptSharesButton');
+    const encryptedSharesTable = document.getElementById('encryptedShares');
+    
+    async function encryptShares() {
+        const sharesTable = document.getElementById('shares');
+        const sharesRows = sharesTable.rows;
+        const encryptedSharesTable = document.getElementById('encryptedShares');
+        const encryptedSharesRows = encryptedSharesTable.rows;
+    
+        for (let i = 1; i < sharesRows.length && i < encryptedSharesRows.length; i++) {  // Skip header row (i=0)
+            const shareRow = sharesRows[i-1];
+            const encryptedShareRow = encryptedSharesRows[i];
+    
+            const originalShareTextarea = encryptedShareRow.cells[3].querySelector('textarea');
+            const encryptedShareTextarea = encryptedShareRow.cells[4].querySelector('textarea');
+            const publicKeyCell = encryptedShareRow.cells[2];
+    
+            if (originalShareTextarea && encryptedShareTextarea && publicKeyCell) {
+                const originalShare = shareRow.cells[1].querySelector('textarea').value;  // Fetch original share value from shares table
+                originalShareTextarea.value = originalShare;  // Set the original share value
+    
+                const publicKey = publicKeyCell.textContent;
+                try {
+                    const encryptedShare = await encryptShare(originalShare, publicKey);
+                    encryptedShareTextarea.value = encryptedShare;
+                } catch (error) {
+                    console.error('Error encrypting share:', error);
+                    // Optionally, handle error (e.g., show a message to the user)
+                }
+            }
+        }
+    }
+    
+    
+    
+    
+    encryptSharesButton.addEventListener('click', encryptShares);
+
+
 
     const combineButton = document.getElementById("combineButton");
     const recoveredPasswordElement = document.getElementById("recoveredPassword");
@@ -163,8 +279,6 @@ async function encryptFile() {
             encryptionStatusElement.textContent = 'Please generate or enter a password first';
             return;
         }
-
-
 
         const keyBuffer = hexToArrayBuffer(password);
         const key = await crypto.subtle.importKey(

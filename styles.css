@@ -74,9 +74,12 @@ table {
 
 td {
     border: 1px solid #ccc;
-    padding: 10px;
+    padding: 5px;
     vertical-align: center;
+    white-space: normal;
+    word-break: break-all;
 }
+
 
 textarea {
     width: 100%;
@@ -150,4 +153,10 @@ input[type="number"] {
 
 #addShareRow, #removeShareRow {
     display: inline-block;
+}
+
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 20px;
 }

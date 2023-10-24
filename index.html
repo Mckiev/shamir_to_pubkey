@@ -29,6 +29,27 @@
             <table id="shares">
                 <!-- Rows will be populated here -->
             </table>
+
+            <div id="publicKeyUpload">
+                <h2>Add JSON with Public Keys</h2>
+                <input type="file" id="publicKeyFile" accept=".json">
+            </div>
+            <div><button id="encryptSharesButton">Encrypt Shares</button></div>
+
+            <div class="table-container">
+                <table id="encryptedShares">
+                    <!-- Headers for the table -->
+                    <tr>
+                        <th>Share #</th>
+                        <th>Ethereum Address</th>
+                        <th>Public Key</th>
+                        <th>Original Share</th>
+                        <th>Encrypted Share</th>
+                    </tr>
+                    <!-- Rows will be populated here -->
+                </table>
+            </div>
+
         </div>
 
         <div id="fileEncryption">
@@ -64,7 +85,7 @@
 
     </div>
 
-    <script src="secrets.js"></script>
-    <script src="app.js"></script>
+    <!-- <script src="secrets.js"></script> -->
+    <script src="bundle.js"></script>
 </body>
 </html>
