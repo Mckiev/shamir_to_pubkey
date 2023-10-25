@@ -3,7 +3,9 @@ const secrets = require('secrets.js-grempe');
 const EthCrypto = require('eth-crypto');
 
 // JavaScript for tab switching
-function openTab(tabName) {
+
+
+window.openTab = function(tabName) {
     var i, tabContent;
     tabContent = document.getElementsByClassName("tab-content");
     for (i = 0; i < tabContent.length; i++) {
@@ -169,10 +171,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const encryptedSharesTable = document.getElementById('encryptedShares');
         const encryptedSharesRows = encryptedSharesTable.rows;
     
-        for (let i = 1; i < sharesRows.length && i < encryptedSharesRows.length; i++) {  // Skip header row (i=0)
-            const shareRow = sharesRows[i-1];
-            const encryptedShareRow = encryptedSharesRows[i];
-    
+        for (let i = 0; i < sharesRows.length && i < encryptedSharesRows.length+1; i++) {  // Skip header row (i=0)
+            const shareRow = sharesRows[i];
+            const encryptedShareRow = encryptedSharesRows[i+1];
             const originalShareTextarea = encryptedShareRow.cells[3].querySelector('textarea');
             const encryptedShareTextarea = encryptedShareRow.cells[4].querySelector('textarea');
             const publicKeyCell = encryptedShareRow.cells[2];
@@ -256,6 +257,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 const fileInputElement = document.getElementById("fileInput");
 const encryptFileButton = document.getElementById("encryptFile");
+const decryptFileButton = document.getElementById("decryptFile");
 const encryptionStatusElement = document.getElementById("encryptionStatus");
 
 function hexToArrayBuffer(hex) {
@@ -331,6 +333,7 @@ async function encryptFile() {
 
 encryptFileButton.addEventListener("click", encryptFile);
 
+decryptFileButton.addEventListener("click", decryptFile);
 
 async function decryptFile() {
     const decryptionStatusElement = document.getElementById('decryptionStatus');
@@ -398,6 +401,9 @@ async function decryptFile() {
         console.error('Decryption Error:', e);
         decryptionStatusElement.textContent = 'Decryption failed';
     }
+
+
+
 }
 },{"eth-crypto":229,"secrets.js-grempe":312}],2:[function(require,module,exports){
 function _arrayLikeToArray(arr, len) {
