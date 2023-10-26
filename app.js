@@ -440,6 +440,23 @@ function generateKeys(seedPhrase, derivationPath) {
       }
   }
   
-  window.generatePrivateKey = generatePrivateKey;  // Expose function globally for use in HTML
-  window.decryptMessage = decryptMessage;  // Expose function globally for use in HTML
+async function encryptMessage() {
+    const message = document.getElementById('message').value;
+    const publicKey = document.getElementById('publicKey').value.trim();
+    try {
+        const encrypted = await EthCrypto.encryptWithPublicKey(
+            hexToUint8Array(publicKey),
+            message
+        );
+        const encryptedString = EthCrypto.cipher.stringify(encrypted);
+        document.getElementById('encryptedMessage').value = encryptedString;
+    } catch (error) {
+        console.error('Encryption failed:', error.message);
+    }
+}
+
+window.encryptMessage = encryptMessage;     // Expose function globally for use in HTML
+
+window.generatePrivateKey = generatePrivateKey;  // Expose function globally for use in HTML
+window.decryptMessage = decryptMessage;  // Expose function globally for use in HTML
   

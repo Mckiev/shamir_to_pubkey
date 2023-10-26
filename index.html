@@ -8,8 +8,9 @@
 <body>
     <div class="tab-header">
         <button class="tab-link" onclick="openTab('generateTab')">Generate & Split</button>
-        <button class="tab-link" onclick="openTab('combineTab')">Combine</button>
+        <button class="tab-link" onclick="openTab('encryptTab')">Encrypt</button>
         <button class="tab-link" onclick="openTab('decryptTab')">Decrypt</button>
+        <button class="tab-link" onclick="openTab('combineTab')">Combine</button>
     </div>
 
     <div id="generateTab" class="tab-content">
@@ -122,6 +123,28 @@
         </div>
     
     </div>     
+    <div id="encryptTab" class="tab-content">
+
+        <h1>Encrypt Message</h1>
+    
+        <div>
+            <label for="message">Message:</label>
+            <input type="text" id="message">
+        </div>
+    
+        <div>
+            <label for="publicKey">Public Key:</label>
+            <input type="text" id="publicKey">
+        </div>
+    
+        <button onclick="encryptMessage()">Encrypt</button>
+    
+        <div>
+            <h2>Encrypted Message:</h2>
+            <textarea id="encryptedMessage" rows="4" cols="50" readonly></textarea>
+        </div>
+    
+    </div>
 
     <script src="bundle.js"></script>
 </body>
