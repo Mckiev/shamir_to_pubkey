@@ -1,6 +1,7 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 const secrets = require('secrets.js-grempe');
 const EthCrypto = require('eth-crypto');
+const { ethers } = require('ethers');
 
 // JavaScript for tab switching
 
@@ -332,7 +333,6 @@ async function encryptFile() {
 
 
 encryptFileButton.addEventListener("click", encryptFile);
-
 decryptFileButton.addEventListener("click", decryptFile);
 
 async function decryptFile() {
@@ -344,9 +344,9 @@ async function decryptFile() {
             return;
         }
 
-        const password = document.getElementById("decryptionPasswordInput").value;
+        const password = document.getElementById("recoveredPassword").value;
         if (!password) {
-            decryptionStatusElement.textContent = 'Please enter a password';
+            decryptionStatusElement.textContent = 'Please enter a recovered password';
             return;
         }
 
@@ -405,7 +405,46 @@ async function decryptFile() {
 
 
 }
-},{"eth-crypto":229,"secrets.js-grempe":312}],2:[function(require,module,exports){
+
+function generateKeys(seedPhrase, derivationPath) {
+    const wallet = ethers.Wallet.fromMnemonic(seedPhrase, derivationPath);
+    const privateKey = wallet.privateKey;
+    const publicKey = wallet.publicKey;
+    const address = wallet.address;
+  
+    return { privateKey, publicKey, address };
+  }
+  
+  function generatePrivateKey() {
+      const seedPhrase = document.getElementById('mnemonic').value;
+      const derivationPath = document.getElementById('derivationPath').value;
+      const keys = generateKeys(seedPhrase, derivationPath);
+      document.getElementById('generatedPrivateKey').value = keys.privateKey;
+      document.getElementById('walletAddress').innerText = keys.address;
+  }
+  
+  async function decryptMessage() {
+      const privateKey = document.getElementById('generatedPrivateKey').value;
+      const encryptedMessage = document.getElementById('encryptedMessageInput').value;
+      try {
+          const decrypted = await EthCrypto.decryptWithPrivateKey(
+              privateKey,
+              EthCrypto.cipher.parse(encryptedMessage)
+          );
+          document.getElementById('decryptedMessage').value = decrypted;
+      } catch (error) {
+          let errorMessage = 'Decryption failed: ' + error.message;
+          if (error.message.toLowerCase().includes('bad mac')) {
+              errorMessage += '\nThis usually indicates a wrong private key.';
+          }
+          alert(errorMessage);
+      }
+  }
+  
+  window.generatePrivateKey = generatePrivateKey;  // Expose function globally for use in HTML
+  window.decryptMessage = decryptMessage;  // Expose function globally for use in HTML
+  
+},{"eth-crypto":229,"ethers":261,"secrets.js-grempe":312}],2:[function(require,module,exports){
 function _arrayLikeToArray(arr, len) {
   if (len == null || len > arr.length) len = arr.length;
   for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];

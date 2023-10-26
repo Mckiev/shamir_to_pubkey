@@ -9,6 +9,7 @@
     <div class="tab-header">
         <button class="tab-link" onclick="openTab('generateTab')">Generate & Split</button>
         <button class="tab-link" onclick="openTab('combineTab')">Combine</button>
+        <button class="tab-link" onclick="openTab('decryptTab')">Decrypt</button>
     </div>
 
     <div id="generateTab" class="tab-content">
@@ -73,17 +74,54 @@
             </div>
             <button id="combineButton">Combine Shares</button>
             <h3>Recovered password:</h3>
-            <textarea id="recoveredPassword" readonly></textarea>
+            <textarea id="recoveredPassword"></textarea>
         </div>
         <div id="decryptionDiv">
             <h2>Decrypt File</h2>
             <input type="file" id="encryptedFileInput">
-            <input type="password" id="decryptionPasswordInput" placeholder="Enter Password">
             <button id="decryptFile">Decrypt File</button>
             <p id="decryptionStatus">Status: Waiting for file and password...</p>
-        </div>        
-
+        </div>   
     </div>
+    <div id="decryptTab" class="tab-content">
+
+        <h1>Decrypt Message</h1>
+    
+        <div>
+            <label for="mnemonic">Mnemonic:</label>
+            <input type="text" id="mnemonic">
+        </div>
+    
+        <div>
+            <label for="derivationPath">Derivation Path:</label>
+            <input type="text" id="derivationPath" value="m/44'/60'/0'/0/0">
+        </div>
+    
+        <button onclick="generatePrivateKey()">Generate Private Key</button>
+    
+        <div id="walletAddressDiv">
+            <h2>Wallet Address:</h2>
+            <pre id="walletAddress"></pre>
+        </div>
+    
+        <div id="generatedKeyDiv">
+            <h2>Generated Private Key:</h2>
+            <input type="text" id="generatedPrivateKey" size="70">
+        </div>
+    
+        <div>
+            <label for="encryptedMessageInput">Encrypted Message:</label>
+            <input type="text" id="encryptedMessageInput">
+        </div>
+    
+        <button onclick="decryptMessage()">Decrypt</button>
+    
+        <div>
+            <h2>Decrypted Message:</h2>
+            <textarea id="decryptedMessage" rows="10" cols="80" readonly></textarea>
+        </div>
+    
+    </div>     
 
     <script src="bundle.js"></script>
 </body>
