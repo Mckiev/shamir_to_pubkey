@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Password Generator & Shamir Secret Sharing</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="tab-header">
+        <button class="tab-link" onclick="openTab('generateTab')">Generate & Split</button>
+        <button class="tab-link" onclick="openTab('encryptTab')">Encrypt</button>
+        <button class="tab-link" onclick="openTab('decryptTab')">Decrypt</button>
+        <button class="tab-link" onclick="openTab('combineTab')">Combine</button>
+    </div>
+
+    <div id="generateTab" class="tab-content">
+        <h1>Password Generator & Shamir Secret Sharing</h1>
+
+        <div id="password">
+            <textarea id="passwordInput" placeholder="Enter your password or generate one" rows="4" cols="50"></textarea>
+            <button id="generatePassword">Generate Password</button>
+        </div>
+    
+    
+        <div id="secretSharing">
+            <label for="totalShares">Total Shares:</label>
+            <input type="number" id="totalShares" min="2" value="5">
+            <label for="minShares">Shares for Recovery:</label>
+            <input type="number" id="minShares" min="2" value="3">
+            <button id="splitSecret">Split Secret</button>
+            <table id="shares">
+                <!-- Rows will be populated here -->
+            </table>
+
+            <div id="publicKeyUpload">
+                <h2>Add JSON with Public Keys</h2>
+                <input type="file" id="publicKeyFile" accept=".json">
+            </div>
+            <div><button id="encryptSharesButton">Encrypt Shares</button></div>
+
+            <div class="table-container">
+                <table id="encryptedShares">
+                    <!-- Headers for the table -->
+                    <tr>
+                        <th>Share #</th>
+                        <th>Ethereum Address</th>
+                        <th>Public Key</th>
+                        <th>Original Share</th>
+                        <th>Encrypted Share</th>
+                    </tr>
+                    <!-- Rows will be populated here -->
+                </table>
+                <button id="generateJsonButton">Save JSON</button>
+            </div>
+
+        </div>
+
+        <div id="fileEncryption">
+            <h2>File Encryption</h2>
+            <input type="file" id="fileInput">
+            <button id="encryptFile">Encrypt File</button>
+            <p id="encryptionStatus"></p>
+        </div>
+    </div>
+
+    <div id="combineTab" class="tab-content" style="display:none;">
+        <h1>Combine Shares to Recover Password</h1>
+        <div id="combineShares">
+            <h2>Combine Shares to Recover Password</h2>
+            <div class="add-remove">
+                <button id="addShareRow">Add Share Row</button>
+                <button id="removeShareRow">Remove Share Row</button>
+            </div>
+            <div id="shareRows">
+                <!-- Textareas will be dynamically added here -->
+            </div>
+            <button id="combineButton">Combine Shares</button>
+            <h3>Recovered password:</h3>
+            <textarea id="recoveredPassword"></textarea>
+        </div>
+        <div id="decryptionDiv">
+            <h2>Decrypt File</h2>
+            <input type="file" id="encryptedFileInput">
+            <button id="decryptFile">Decrypt File</button>
+            <p id="decryptionStatus">Status: Waiting for file and password...</p>
+        </div>   
+    </div>
+    <div id="decryptTab" class="tab-content">
+
+        <h1>Decrypt Message</h1>
+    
+        <div>
+            <label for="mnemonic">Mnemonic:</label>
+            <input type="text" id="mnemonic">
+        </div>
+    
+        <div>
+            <label for="derivationPath">Derivation Path:</label>
+            <input type="text" id="derivationPath" value="m/44'/60'/0'/0/0">
+        </div>
+    
+        <button onclick="generatePrivateKey()">Generate Private Key</button>
+    
+        <div id="walletAddressDiv">
+            <h2>Wallet Address:</h2>
+            <pre id="walletAddress"></pre>
+        </div>
+    
+        <div id="generatedKeyDiv">
+            <h2>Generated Private Key:</h2>
+            <input type="text" id="generatedPrivateKey" size="70">
+        </div>
+    
+        <div>
+            <label for="encryptedMessageInput">Encrypted Message:</label>
+            <input type="text" id="encryptedMessageInput">
+        </div>
+    
+        <button onclick="decryptMessage()">Decrypt</button>
+    
+        <div>
+            <h2>Decrypted Message:</h2>
+            <textarea id="decryptedMessage" rows="10" cols="80" readonly></textarea>
+        </div>
+    
+    </div>     
+    <div id="encryptTab" class="tab-content">
+
+        <h1>Encrypt Message</h1>
+    
+        <div>
+            <label for="message">Message:</label>
+            <input type="text" id="message">
+        </div>
+    
+        <div>
+            <label for="publicKey">Public Key:</label>
+            <input type="text" id="publicKey">
+        </div>
+    
+        <button onclick="encryptMessage()">Encrypt</button>
+    
+        <div>
+            <h2>Encrypted Message:</h2>
+            <textarea id="encryptedMessage" rows="4" cols="50" readonly></textarea>
+        </div>
+    
+    </div>
+
+    <script src="bundle.js"></script>
+</body>
+</html>

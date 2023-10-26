@@ -1,0 +1,162 @@
+/* Reset some default browser styles */
+body, h1, button {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+}
+
+
+input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    box-sizing: border-box;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    word-wrap: break-word;  /* Add text wrapping */
+}
+
+/* Add a gray background color with some padding */
+body {
+    background-color: #f7f7f7;
+    padding: 20px;
+}
+
+/* Style headers */
+h1 {
+    color: #333366;
+    margin-bottom: 20px;
+}
+
+/* Style the container divs */
+div {
+    margin-bottom: 20px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fff;
+}
+
+textarea {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    box-sizing: border-box;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    resize: vertical; /* Allows vertical resize */
+}
+
+/* Style buttons */
+button {
+    display: block;  /* Make button block-level for centering */
+    margin: 10px auto;  /* Auto margins for centering */
+    background-color: #333366;
+    color: white;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* Hover effect for buttons */
+button:hover {
+    background-color: #555599;
+}
+
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+td {
+    border: 1px solid #ccc;
+    padding: 5px;
+    vertical-align: center;
+    white-space: normal;
+    word-break: break-all;
+}
+
+
+textarea {
+    width: 100%;
+    height: 80px;
+    resize: none;
+    word-wrap: break-word;
+}
+
+
+#combineShares {
+    margin-top: 40px;
+    border-top: 2px solid #ccc;
+    padding-top: 20px;
+}
+
+#combineShares h2 {
+    margin-bottom: 20px;
+}
+
+
+
+
+/* ... (existing styles) ... */
+
+.tab-header {
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+}
+
+.tab-link {
+    margin: 10px 0px;
+    float: left;
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    font-size: 17px;
+    background-color: #f1f1f1;
+    color: black;
+    border: none;
+    cursor: pointer;
+    flex: 1;
+}
+
+.tab-link:hover {
+    background-color: #ddd;
+}
+
+.tab-content {
+    padding: 20px;
+    border-top: none;
+}
+
+label {
+    margin-right: 10px;
+}
+
+input[type="number"] {
+    width: 50px;
+    margin-right: 20px;
+}
+
+
+#shareRows textarea {
+    width: 100%;
+    height: 60px;
+    margin-bottom: 10px;
+    resize: none;
+}
+
+#addShareRow, #removeShareRow {
+    display: inline-block;
+}
+
+.table-container {
+    max-width: 100%;  /* or any desired value */
+    overflow-x: auto;
+    margin-top: 20px;
+}
