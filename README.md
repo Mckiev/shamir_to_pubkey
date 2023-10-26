@@ -10,9 +10,13 @@ This web application enables file encryption with a randomly generated password,
 Don't really use this repo - I have no idea about security practices and probably messed up multiple times in this repo.
 
 Credits:
+
 https://github.com/grempe/secrets.js
+
 https://github.com/pubkey/eth-crypto
+
 https://github.com/ethers-io/ethers.js
+
 [GPT-4](https://chat.openai.com/)
 
 ## How to Use it
@@ -25,7 +29,9 @@ First, choose Ethereum addresses that will share access to the password that wou
 
 Go to https://pubkey-fetch.vercel.app/, obtain public keys, and save them to JSON.
 Note: the Eth account must have made at least one transaction for the code to work.
-![](https://i.imgur.com/UfYk0g1.png)
+
+![](https://i.imgur.com/Si0mv4i.png)
+
 
 Download this JSON, and this whole repository, put it on a flash drive, and proceed on an air-gapped machine.
 
@@ -60,3 +66,4 @@ The derivation path can be adjusted.
 This tab provides the functionality to combine shares into the original password and use it to decrypt the file.
 
 Supposedly, each recipient will bring his own previously decrypted share, and together they can recover the encrypted file.
+
