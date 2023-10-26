@@ -3,10 +3,8 @@ const EthCrypto = require('eth-crypto');
 const { ethers } = require('ethers');
 
 // JavaScript for tab switching
-
-
 window.openTab = function(tabName) {
-    var i, tabContent;
+    let i, tabContent;
     tabContent = document.getElementsByClassName("tab-content");
     for (i = 0; i < tabContent.length; i++) {
         tabContent[i].style.display = "none";
@@ -14,7 +12,8 @@ window.openTab = function(tabName) {
     document.getElementById(tabName).style.display = "block";
 }
 
-function hexToUint8Array(hexString) {
+// Converts public key to the format expected by EthCrypto
+const hexToUint8Array = (hexString) => {
     // Remove '0x' prefix if present
     if (hexString.startsWith('0x')) {
         hexString = '04' + hexString.slice(2);
@@ -30,7 +29,7 @@ function hexToUint8Array(hexString) {
     return bytes;
 }
 
-
+// Function to initiate automatic file download
 function initDownoad(theData, fileName) {
     // Create Blob and initiate automatic file download
     const blob = new Blob([theData], { type: 'application/octet-stream' });
@@ -45,6 +44,7 @@ function initDownoad(theData, fileName) {
     document.body.removeChild(a);
 }
 
+// Function to display public keys when JSON file is uploaded
 function displayPublicKeys(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -123,7 +123,7 @@ document.addEventListener("DOMContentLoaded", function () {
             sharesElement.removeChild(sharesElement.firstChild);
         }
 
-    // Display each share in separate table rows
+    // Display each share in a separate row
     shares.forEach((share, index) => {
         const row = document.createElement("tr");
         const labelCell = document.createElement("td");
@@ -163,7 +163,6 @@ document.addEventListener("DOMContentLoaded", function () {
     splitSecretButton.addEventListener("click", splitPassword);
 
     const encryptSharesButton = document.getElementById('encryptSharesButton');
-    const encryptedSharesTable = document.getElementById('encryptedShares');
     
     async function encryptShares() {
         const sharesTable = document.getElementById('shares');
@@ -171,9 +170,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const encryptedSharesTable = document.getElementById('encryptedShares');
         const encryptedSharesRows = encryptedSharesTable.rows;
     
-        for (let i = 0; i < sharesRows.length && i < encryptedSharesRows.length+1; i++) {  // Skip header row (i=0)
+        for (let i = 0; i < sharesRows.length && i < encryptedSharesRows.length+1; i++) {  
             const shareRow = sharesRows[i];
-            const encryptedShareRow = encryptedSharesRows[i+1];
+            const encryptedShareRow = encryptedSharesRows[i+1]; // Skip header row (i=0)
             const originalShareTextarea = encryptedShareRow.cells[3].querySelector('textarea');
             const encryptedShareTextarea = encryptedShareRow.cells[4].querySelector('textarea');
             const publicKeyCell = encryptedShareRow.cells[2];
@@ -188,18 +187,16 @@ document.addEventListener("DOMContentLoaded", function () {
                     encryptedShareTextarea.value = encryptedShare;
                 } catch (error) {
                     console.error('Error encrypting share:', error);
-                    // Optionally, handle error (e.g., show a message to the user)
+                    alert('Error encrypting share:' + error.message);
                 }
             }
         }
     }
     
-    
-    
-    
     encryptSharesButton.addEventListener('click', encryptShares);
 
 
+    // Code for combining shares to recover the password
 
     const combineButton = document.getElementById("combineButton");
     const recoveredPasswordElement = document.getElementById("recoveredPassword");
@@ -248,215 +245,206 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     removeShareRowButton.addEventListener("click", removeShareRow);
-
     addShareRowButton.addEventListener("click", addShareRow);
-
     combineButton.addEventListener("click", combineShares);
-});
 
+    const fileInputElement = document.getElementById("fileInput");
+    const encryptFileButton = document.getElementById("encryptFile");
+    const decryptFileButton = document.getElementById("decryptFile");
+    const encryptionStatusElement = document.getElementById("encryptionStatus");
 
-const fileInputElement = document.getElementById("fileInput");
-const encryptFileButton = document.getElementById("encryptFile");
-const decryptFileButton = document.getElementById("decryptFile");
-const encryptionStatusElement = document.getElementById("encryptionStatus");
-
-function hexToArrayBuffer(hex) {
-    const buffer = new ArrayBuffer(hex.length / 2);
-    const dataView = new DataView(buffer);
-    for (let i = 0; i < hex.length; i += 2) {
-        dataView.setUint8(i / 2, parseInt(hex.substring(i, i + 2), 16));
+    function hexToArrayBuffer(hex) {
+        const buffer = new ArrayBuffer(hex.length / 2);
+        const dataView = new DataView(buffer);
+        for (let i = 0; i < hex.length; i += 2) {
+            dataView.setUint8(i / 2, parseInt(hex.substring(i, i + 2), 16));
+        }
+        return buffer;
     }
-    return buffer;
-}
 
-async function encryptFile() {
-    try {
-        const file = fileInputElement.files[0];
-        if (!file) {
-            encryptionStatusElement.textContent = 'No file selected';
-            return;
-        }
-
-        const password = document.getElementById("passwordInput").value;
-        if (!password) {
-            encryptionStatusElement.textContent = 'Please generate or enter a password first';
-            return;
-        }
-
-        const keyBuffer = hexToArrayBuffer(password);
-        const key = await crypto.subtle.importKey(
-            'raw',
-            keyBuffer,
-            { name: 'AES-GCM' },
-            false,
-            ['encrypt', 'decrypt']
-        );
-        
-        const fileBuffer = await file.arrayBuffer();
-        const fileName = file.name;
-        const metadata = JSON.stringify({ fileName });
-        const metadataBuffer = new TextEncoder().encode(metadata);
-        const delimiter = new TextEncoder().encode("||");
-    
-        const combinedArray = new Uint8Array(
-            metadataBuffer.length + delimiter.length + fileBuffer.byteLength
-        );
-        combinedArray.set(metadataBuffer, 0);
-        combinedArray.set(delimiter, metadataBuffer.length);
-        combinedArray.set(new Uint8Array(fileBuffer), metadataBuffer.length + delimiter.length);
-    
-        const iv = crypto.getRandomValues(new Uint8Array(12));
-        const encryptedData = await crypto.subtle.encrypt(
-            {
-                name: 'AES-GCM',
-                iv: iv
-            },
-            key,
-            combinedArray
-        );
-    
-        const finalArray = new Uint8Array(iv.length + encryptedData.byteLength);
-        finalArray.set(iv, 0);
-        finalArray.set(new Uint8Array(encryptedData), iv.length);
-        
-        encryptionStatusElement.textContent = 'File encrypted successfully';
-
-        // Create Blob and initiate automatic file download
-        initDownoad(finalArray, 'SuperSecretFile.enc');
-
-    } catch (e) {
-        console.error('Encryption Error:', e);
-        encryptionStatusElement.textContent = 'Encryption failed';
-    }
-}
-
-
-encryptFileButton.addEventListener("click", encryptFile);
-decryptFileButton.addEventListener("click", decryptFile);
-
-async function decryptFile() {
-    const decryptionStatusElement = document.getElementById('decryptionStatus');
-    try {
-        const file = document.getElementById("encryptedFileInput").files[0];
-        if (!file) {
-            decryptionStatusElement.textContent = 'No encrypted file selected';
-            return;
-        }
-
-        const password = document.getElementById("recoveredPassword").value;
-        if (!password) {
-            decryptionStatusElement.textContent = 'Please enter a recovered password';
-            return;
-        }
-
-        const keyBuffer = hexToArrayBuffer(password);
-        const key = await crypto.subtle.importKey(
-            'raw',
-            keyBuffer,
-            { name: 'AES-GCM' },
-            false,
-            ['decrypt']
-        );
-
-        const fileBuffer = await file.arrayBuffer();
-        const iv = new Uint8Array(fileBuffer, 0, 12);
-        const encryptedData = new Uint8Array(fileBuffer, 12);
-
-
-        const decryptedData = await crypto.subtle.decrypt(
-            {
-                name: 'AES-GCM',
-                iv: iv
-            },
-            key,
-            encryptedData
-        );
-
-        const decryptedArray = new Uint8Array(decryptedData);
-        const delimiter = new TextEncoder().encode("||");
-        let delimiterIndex = -1;
-        for (let i = 0; i < decryptedArray.length - delimiter.length + 1; i++) {
-            if (decryptedArray.slice(i, i + delimiter.length).every((val, index) => val === delimiter[index])) {
-                delimiterIndex = i;
-                break;
+    async function encryptFile() {
+        try {
+            const file = fileInputElement.files[0];
+            if (!file) {
+                encryptionStatusElement.textContent = 'No file selected';
+                return;
             }
+
+            const password = document.getElementById("passwordInput").value;
+            if (!password) {
+                encryptionStatusElement.textContent = 'Please generate or enter a password first';
+                return;
+            }
+
+            const keyBuffer = hexToArrayBuffer(password);
+            const key = await crypto.subtle.importKey(
+                'raw',
+                keyBuffer,
+                { name: 'AES-GCM' },
+                false,
+                ['encrypt', 'decrypt']
+            );
+            
+            const fileBuffer = await file.arrayBuffer();
+            const fileName = file.name;
+            const metadata = JSON.stringify({ fileName });
+            const metadataBuffer = new TextEncoder().encode(metadata);
+            const delimiter = new TextEncoder().encode("||");
+        
+            const combinedArray = new Uint8Array(
+                metadataBuffer.length + delimiter.length + fileBuffer.byteLength
+            );
+            combinedArray.set(metadataBuffer, 0);
+            combinedArray.set(delimiter, metadataBuffer.length);
+            combinedArray.set(new Uint8Array(fileBuffer), metadataBuffer.length + delimiter.length);
+        
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const encryptedData = await crypto.subtle.encrypt(
+                {
+                    name: 'AES-GCM',
+                    iv: iv
+                },
+                key,
+                combinedArray
+            );
+        
+            const finalArray = new Uint8Array(iv.length + encryptedData.byteLength);
+            finalArray.set(iv, 0);
+            finalArray.set(new Uint8Array(encryptedData), iv.length);
+            
+            encryptionStatusElement.textContent = 'File encrypted successfully';
+
+            // Create Blob and initiate automatic file download
+            initDownoad(finalArray, 'SuperSecretFile.enc');
+
+        } catch (e) {
+            console.error('Encryption Error:', e);
+            encryptionStatusElement.textContent = 'Encryption failed';
         }
-
-        if (delimiterIndex === -1) {
-            console.error("Delimiter not found");
-            return;
-        }
-        const metadataBuffer = decryptedArray.slice(0, delimiterIndex);
-        const metadataString = new TextDecoder().decode(metadataBuffer);
-        const metadata = JSON.parse(metadataString);
-        const originalFileName = metadata.fileName;
-
-        const originalFileData = decryptedArray.slice(delimiterIndex + delimiter.length);
-
-        initDownoad(originalFileData, originalFileName);
-
-        decryptionStatusElement.textContent = 'File decrypted successfully';
-    } catch (e) {
-        console.error('Decryption Error:', e);
-        decryptionStatusElement.textContent = 'Decryption failed';
     }
 
+    encryptFileButton.addEventListener("click", encryptFile);
+    decryptFileButton.addEventListener("click", decryptFile);
+
+    async function decryptFile() {
+        const decryptionStatusElement = document.getElementById('decryptionStatus');
+        try {
+            const file = document.getElementById("encryptedFileInput").files[0];
+            if (!file) {
+                decryptionStatusElement.textContent = 'No encrypted file selected';
+                return;
+            }
+
+            const password = document.getElementById("recoveredPassword").value;
+            if (!password) {
+                decryptionStatusElement.textContent = 'Please enter a recovered password';
+                return;
+            }
+
+            const keyBuffer = hexToArrayBuffer(password);
+            const key = await crypto.subtle.importKey(
+                'raw',
+                keyBuffer,
+                { name: 'AES-GCM' },
+                false,
+                ['decrypt']
+            );
+
+            const fileBuffer = await file.arrayBuffer();
+            const iv = new Uint8Array(fileBuffer, 0, 12);
+            const encryptedData = new Uint8Array(fileBuffer, 12);
 
 
-}
+            const decryptedData = await crypto.subtle.decrypt(
+                {
+                    name: 'AES-GCM',
+                    iv: iv
+                },
+                key,
+                encryptedData
+            );
 
-function generateKeys(seedPhrase, derivationPath) {
-    const wallet = ethers.Wallet.fromMnemonic(seedPhrase, derivationPath);
-    const privateKey = wallet.privateKey;
-    const publicKey = wallet.publicKey;
-    const address = wallet.address;
-  
-    return { privateKey, publicKey, address };
-  }
-  
-  function generatePrivateKey() {
-      const seedPhrase = document.getElementById('mnemonic').value;
-      const derivationPath = document.getElementById('derivationPath').value;
-      const keys = generateKeys(seedPhrase, derivationPath);
-      document.getElementById('generatedPrivateKey').value = keys.privateKey;
-      document.getElementById('walletAddress').innerText = keys.address;
-  }
-  
-  async function decryptMessage() {
-      const privateKey = document.getElementById('generatedPrivateKey').value;
-      const encryptedMessage = document.getElementById('encryptedMessageInput').value;
-      try {
-          const decrypted = await EthCrypto.decryptWithPrivateKey(
-              privateKey,
-              EthCrypto.cipher.parse(encryptedMessage)
-          );
-          document.getElementById('decryptedMessage').value = decrypted;
-      } catch (error) {
-          let errorMessage = 'Decryption failed: ' + error.message;
-          if (error.message.toLowerCase().includes('bad mac')) {
-              errorMessage += '\nThis usually indicates a wrong private key.';
-          }
-          alert(errorMessage);
-      }
-  }
-  
-async function encryptMessage() {
-    const message = document.getElementById('message').value;
-    const publicKey = document.getElementById('publicKey').value.trim();
-    try {
-        const encrypted = await EthCrypto.encryptWithPublicKey(
-            hexToUint8Array(publicKey),
-            message
-        );
-        const encryptedString = EthCrypto.cipher.stringify(encrypted);
-        document.getElementById('encryptedMessage').value = encryptedString;
-    } catch (error) {
-        console.error('Encryption failed:', error.message);
+            const decryptedArray = new Uint8Array(decryptedData);
+            const delimiter = new TextEncoder().encode("||");
+            let delimiterIndex = -1;
+            for (let i = 0; i < decryptedArray.length - delimiter.length + 1; i++) {
+                if (decryptedArray.slice(i, i + delimiter.length).every((val, index) => val === delimiter[index])) {
+                    delimiterIndex = i;
+                    break;
+                }
+            }
+
+            if (delimiterIndex === -1) {
+                console.error("Delimiter not found");
+                return;
+            }
+            const metadataBuffer = decryptedArray.slice(0, delimiterIndex);
+            const metadataString = new TextDecoder().decode(metadataBuffer);
+            const metadata = JSON.parse(metadataString);
+            const originalFileName = metadata.fileName;
+
+            const originalFileData = decryptedArray.slice(delimiterIndex + delimiter.length);
+
+            initDownoad(originalFileData, originalFileName);
+
+            decryptionStatusElement.textContent = 'File decrypted successfully';
+        } catch (e) {
+            console.error('Decryption Error:', e);
+            decryptionStatusElement.textContent = 'Decryption failed';
+        }
     }
-}
 
-window.encryptMessage = encryptMessage;     // Expose function globally for use in HTML
+    function generateKeys(seedPhrase, derivationPath) {
+        const wallet = ethers.Wallet.fromMnemonic(seedPhrase, derivationPath);
+        const privateKey = wallet.privateKey;
+        const publicKey = wallet.publicKey;
+        const address = wallet.address;
+    
+        return { privateKey, publicKey, address };
+    }
+    
+    const generatePrivateKey = () => {
+        const seedPhrase = document.getElementById('mnemonic').value;
+        const derivationPath = document.getElementById('derivationPath').value;
+        const keys = generateKeys(seedPhrase, derivationPath);
+        document.getElementById('generatedPrivateKey').value = keys.privateKey;
+        document.getElementById('walletAddress').innerText = keys.address;
+    }
+    
+    async function decryptMessage() {
+        const privateKey = document.getElementById('generatedPrivateKey').value;
+        const encryptedMessage = document.getElementById('encryptedMessageInput').value;
+        try {
+            const decrypted = await EthCrypto.decryptWithPrivateKey(
+                privateKey,
+                EthCrypto.cipher.parse(encryptedMessage)
+            );
+            document.getElementById('decryptedMessage').value = decrypted;
+        } catch (error) {
+            let errorMessage = 'Decryption failed: ' + error.message;
+            if (error.message.toLowerCase().includes('bad mac')) {
+                errorMessage += '\nThis usually indicates a wrong private key.';
+            }
+            alert(errorMessage);
+        }
+    }
+    
+    async function encryptMessage() {
+        const message = document.getElementById('message').value;
+        const publicKey = document.getElementById('publicKey').value.trim();
+        try {
+            const encrypted = await EthCrypto.encryptWithPublicKey(
+                hexToUint8Array(publicKey),
+                message
+            );
+            const encryptedString = EthCrypto.cipher.stringify(encrypted);
+            document.getElementById('encryptedMessage').value = encryptedString;
+        } catch (error) {
+            console.error('Encryption failed:', error.message);
+        }
+    }
 
-window.generatePrivateKey = generatePrivateKey;  // Expose function globally for use in HTML
-window.decryptMessage = decryptMessage;  // Expose function globally for use in HTML
-  
+    window.encryptMessage = encryptMessage;     // Expose function globally for use in HTML
+    window.generatePrivateKey = generatePrivateKey;  // Expose function globally for use in HTML
+    window.decryptMessage = decryptMessage;  // Expose function globally for use in HTML
+});
